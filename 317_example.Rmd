@@ -1,0 +1,397 @@
+---
+title: "Application of Terror Management Theory - PSY317 example"
+output:
+  html_notebook:
+    toc: yes
+    toc_float: true
+---
+#Introduction
+This project was created for *educational purpose* in PSY317 - Social Psychology Lab at Colorado State University. With this example, students will learn how **Terror Management Theory** can be applied to understand the relationship between **self-esteem** and perception of **meaning in life**. The data was *fictional* - created with excel random number generator 
+
+<center>
+![](https://blog.funeralone.com/wp-content/uploads/2014/09/2014-09-15_1219.png)
+</center>
+
+#Download and install R and RStudio
+R is a free, open-source language, graphics, and computing environment available for *Windows* and *Mac* computers.  
+ 
+To install R: click on this [link](https://www.r-project.org/) , click on the **download R** link under "Getting Started" and choose [https://cloud.r-project.org/]. Next, choose your system, and click **"install R for the first time."** Be sure to download the *latest* version.  
+ 
+R studio is an integrated development environment (IDE) for R. Download it at [http://www.rstudio.com/] . Click  **"Download Now"** 
+
+#Starting a New Project
+The first thing to do when creating a new project is to **create a project folder**. Before doing this, please create a folder on your computer just for this class (or your work in R). For example the project folder on my example is called RM and its path is *Downloads/RM* 
+1. To create a new project, **File > New Project > New Directory > Empty Project**  
+2. Name your project **"317Activities"**  Remember where you save your project- save it in the folder on your computer where you keep files for this project (or all of your R projects). So on my computer, it looks like *Downloads/RM/317Activities* 
+ 
+When you begin working on this project and open RStudio again, the first thing you'll do is open the project via **File > Open Project**
+
+#Create an RNotebook
+1. Create an R Notebook by clicking **File > New File > RNotebook**
+2. Rename your notebook, "317 Notebook" after where it says title     
+*optional - toc: yes and toc_float: true are helpful if you want to create a floating table of content on the left of the output document*
+3. Save your RNotebook by clicking **File > Save As > 317Notebook**. Make sure that you save your RNotebook in your R Folder 
+
+#Install packages
+Packages allow us to use different functions in R. One of the most popular packages is called *"tidyverse"* by Hadley Wickham, chief scientist at RStudio. You only need to install a package once via the **install.packages()** function. After you install the package, to use it in your RNotebook, you will use the **library()** function.
+
+Type the following code into your R chunk to install the tidyverse, descriptr, and mosaic packages
+
++ *install.packages("tidyverse")*
++ *install.packages("descriptr")*
++ *install.packages("mosaic")*
++ *library(tidyverse)*
++ *library(descriptr)*
++ *library(mosaic)*
+
+Click the *green arrow* on the top right of your R chunk to run the code.  
+ 
+You can create a title for this R chunk by writing your intended title behind a hashtag above your chunk. # Indicates a first level header, ## a second level header, etc.  Hashtags, when used in Rchunks (rather than outside of the chunk) null code in your Rchunks so you can write yourself notes in the code. This is helpful especially when you're first learning R,  You'll see examples of these in my notebook.  *E.g., #Install Packages*
+```{r, message = FALSE}
+#install.packages("tidyverse")
+#install.packages("descriptr")
+#install.packages("mosaic")
+
+library(tidyverse)
+library(descriptr)
+library(mosaic)
+```
+
+#Import a Dataset
+Your dataset should be saved as a **.csv file** from Qualtrics. Before installing any .csv file into R you need to make sure that it is in your project folder that you created on your computer. So for example, you might export a .csv file from qualtrics (recommended). For a refresher, go to [Qualtrics support](https://www.qualtrics.com/support/survey-platform/data-and-analysis-module/data/downloaddata/export-formats/) 
+
+When you save your .csv file from qualtrics be sure you save it in your project folder (otherwise R will not be able to find it!) E.g., click **Save As > Downloads > RM > 317Activities**. You will use <u>your own data</u>. However, for learning purposes, we will use the **sampledata.csv**. The data was created based on an application of [Terror Management Theory](https://doi.org/10.1007/s10902-010-9201-2). To start, download and save the sampledata.csv in your project folder.
+
+1. To import the dataset into RStudio, you'll need to **create an R chunk**. To do this, find the **"Insert"** button on the top of your RNotebook and click on it. In the dropdown menu, **click R** (OR you can use **Ctrl/Command + Alt + I**). The chunk will appear wherever you left your cursor
+2.  Next, type the following code into the newly created R chunk:
+**[title the chunk "#Import a Dataset"]**
+**sample <- read_csv(file= "sampledata.csv")**
++ *"sample" is the name that we are giving to our file*
++ *"read_csv()" is our function*
++ *"sampledata.csv" is the name of the file exactly as it appears in my RM folder*
+**Hit the green arrow or use the short cut <u>Ctrl/Command + Shift + Enter</u> to run the code in the R chunk**
+```{r, message = FALSE}
+sample <- read_csv(file = "sampledata.csv")
+```
+Now pay attention to the *Global Environment* on the top right. Notice that when you click on the Data file called **"sample"** a new tab will come up in your Notebook with all of your data 
+
+#Cleaning the Data
+##Omitting cases with missing values
+It's reasonable to assume that all of our participants did not answer all of the questions. *I.e., we have some missing data to work with*.
+Consider the missing variables that are non-negotiable for your study, *e.g., participants' scores on one of your IV/DV scales, participants' gender, etc*. You'll want to omit these cases because the missing data will affect your hypothesis testing.
+
++ To see the cases in which we have missing data, execute the following code: **sample[!complete.cases(sample),]**
++ To omit cases in which data is non-existent for these variables use the following code: **sample <- na.omit(sample)**
+
+In the above code, we are simply overwriting the sample dataset and leaving out missing data Na.omit is the function that omits cases with missing data from our dataset
+```{r}
+sample[!complete.cases(sample),]
+
+sample <- na.omit(sample)
+```
+
+#Reverse-coding and creating the scoring scales using multicon package
+Like in the case of missing data, you will have instances in which you'll need to reverse code items on your scales. Finally, you'll want to score a scale for your participants. For example, in our sample dataset, each participant had a total score on the MIL scale, and there will be a mean score for the MIL within your entire sample.
+Using the *multicon package*: In a new code chunk, type in these codes:
+```{r, message = FALSE}
+#install.packages("multicon")
+library(multicon)
+
+MLQset <- sample[, grep("mil", names(sample))]
+MLQlist <- list(MLQP = c(1, 4, 5, 6, -9), 
+                  MLQS = c(2, 3, 7, 8, 10))
+
+MLQscores <- scoreTest(MLQset, MLQlist, nomiss = 0.01, rel = F)
+
+sample <- data.frame(sample, MLQscores)
+```
+Let's break this down from the top!
++ We first create a new object called **MLQset**, and we use the **"<-"** to assign value to it
++ **sample[row, column]** allows us to draw a *subset* from the dataset. 
++ In the square brackets, we leave the row argument blank because we don't want to pick any specific row of data
++ We specify the column argument with **"grep()"** - Grab all the columns whose names include *"mil"*
++ Then, we create **MLQlist** - a list with the scoring keys: These are the column numbers in MIQset associated with the items for each dimension and whether they're reverse coded or not. *Item 9 (as noted) should be reverse-coded*
++ **"scoreTest()"** will calculate the mean score for each subscale that we specify. We save the result in an object called **MLQscores**
++ Finally, we merge the MLQscores into our original dataset - sample
+
+<u>Follow this, and create the mean score for the Self-esteem scale!</u>
+```{r, message = FALSE, echo = FALSE}
+estset <- sample[, grep("est", names(sample))]
+estlist <- list(est_total = c(1, 2, -3, 4, -5, 6, 7, 8, -9, -10))
+
+estscores <- scoreTest(estset, estlist, nomiss = 0.01, rel = F)
+
+sample <- data.frame(sample, estscores)
+```
+
+#Examining reliability of the scales
+Before testing our hypothesis, we need to make sure that the scales being used are reliable. We can use the **"alpha()"** function in R to examine the internal consistency of our scales. 
+**alpha(MLQset, keys = "mil_9")**
++ **MLQset** is the subset of data that we draw from the original dataset (earlier) 
++ **keys = "mil_9"** indicates that item 9 should be reverse-scored before alpha is calculated If we have more than 2 items that should be reverse-coded, use: **keys = c("x", "y", "z")** 
+```{r}
+alpha(MLQset, keys = "mil_9")
+```
+
+#Preliminary Info and Descriptive Statistics
+##Preliminary Info
+The following functions will give us some preliminary info on our dataset. Remember that you'll **insert your dataframe** where I write **"sample"** 
+ 
++ **names(sample)** will give us the names of all of the variables in the dataset 
++ **str(sample)** will give us the structure of the dataset 
++ **head(sample)** will give us the first six rows of the dataset 
+
+###Descriptive statistics
+Use the following code to obtain descriptive stats for each variable in your dataset: 
+ 
++ **describe(sample)** 
+ 
+*remember, sample = our dataset* 
+```{r}
+describe(sample)
+```
+
+#Data visualization
+One of the best things about R is that it allows us to create really visually appealing graphs.  To work with data viz, you'll need to install the package called "ggplot2."  
+ 
++ **install.packages("ggplot2")**
++ **library(ggplot2)** 
+
+##Density plot
+###Basic density plot
+Let's start with a simple density plot. 
++ **"ggplot()"** is our function
++ **"sample"** designates the dataset 
++ **"aes(x =)"** allows us to pick the variable for the x axis
++ **"geom_density()"** designates what kind of plot/graph we want. There are lots of ways to enhance this 
++ **"theme_classic()"** removes all the unnecessary grid lines in the background (which are default in R)
++ **"ggsave()"** allows us to save the plot in picture format. This is particularly helpful when we want to include the plot in our Appendix! 
+```{r}
+ggplot(sample, aes(x = MLQP)) +
+  geom_density() +
+  theme_classic()
+
+ggsave("density_plot.png", width = 8, height = 4)
+```
+
+###Enhance your code to add color and label
+```{r}
+ggplot(sample, aes(x = MLQP)) +   
+  geom_density(fill = "red") +   
+  theme_classic() +   
+  labs(title = "Density Plot of Presence of Meaning in Life for participants in the sample dataset", 
+       x = "Presence of Meaning", y = "Density") 
+ 
+ggsave("density_plot_1.png", width = 8, height = 4) 
+```
+
+###Group by position
+```{r}
+ggplot(sample, aes(x = MLQP, group = cond, fill = cond)) +
+  geom_density(alpha = .2) +
+  theme_classic() +   
+  labs(title = "Does Presence of Meaning in Life differ for participants in different conditions?",  
+       x = "Presence of Meaning", y = "Density") 
+ 
+ggsave("density_plot_2.png", width = 8, height = 4) 
+```
+
+###Alternative method: Facet-wrap/condition
+```{r}
+ggplot(sample, aes(x = MLQP, group = cond, fill = cond)) +  
+  geom_density(show.legend = FALSE) +
+  facet_wrap(~cond) +
+  labs(title = "Does Presence of Meaning in Life differ for participants in different conditions?",
+       x = "Presence of Meaning", y = "Density") 
+ 
+ggsave("density_plot_4.png", width = 8, height = 4)
+```
+
+##Let's try a histogram
+```{r}
+ggplot(sample, aes(x = MLQP, group = cond, fill = cond)) +
+  geom_histogram(show.legend = FALSE) +
+  facet_wrap(~cond) +
+  labs(title = "Does Presence of Meaning in Life differ for participants in different conditions?", 
+       x = "Presence of Meaning", y = "Count") 
+ 
+ggsave("histogram_plot.png", width = 8, height = 4) 
+```
+
+##A box plot:
+```{r}
+ggplot(sample, aes(x = cond, y = MLQP, group = cond)) +  
+  geom_boxplot(show.legend = FALSE) +  
+  theme_classic() + 
+  labs(title = "Does Presence of Meaning in Life differ for participants in different conditions?",    
+       x = "Experimental condition", y = "Presence of Meaning in Life") 
+ 
+ggsave("boxplot.png", width = 8, height = 4) 
+```
+
+##A scatterplot
+```{r}
+ggplot(sample, aes(x = MLQS, y = MLQP)) +  
+  geom_point() +  
+  theme_classic() +
+  labs(title = "What is the relationship between Presence and Search for Meaning in Life",   
+       x = "Search for Meaning in Life", y = "Presence of Meaning in Life") 
+ 
+ggsave("scatterplot.png", width = 8, height = 4) 
+```
+
+#Inferential statistics
+*stats to test your hypothesis!*
+##Correlation 
+It's always good to see how your variables are correlated. A correlation matrix can paint a clear picture for you. 
+ 
+1. First, let's install and load the apaTables package 
++ **install.packages("apaTables")**
++ **library(apaTables)**
+2. Select variables that you are interested in: *Presence of Meaning, Search for Meaning, and Selfesteem*
++ **data <- sample %>% select(MLQS, MLQP, est_total)**
+3. Create a correlation matrix 
++ **apa.cor.table(data, filenam = "cor.doc", table.number = 1)**
+
+<u> Understanding the codes </u>
++ We create an object called **"data"** including 3 variables from the sample dataset
++ **apa.cor.table()** is the function used to generate a correlation matrix and export it as a separate document
++ The first argument is data, the object we just create, **"filename"** allows us to name the document and choose the extension for it. Here, we export a file named **cor.doc** that can be found in the Project folder that you create! The neat thing about this is that the table is already APA formatted. 
+```{r}
+#install.packages("apaTables")
+library(apaTables)
+
+data <- sample %>%
+  select(MLQS, MLQP, est_total)
+
+apa.cor.table(data, 
+              filenam = "cor.doc",
+              table.number = 1)
+```
+###A Simple Correlation Plot: 
+ 
+Though a correlation matrix is helpful, sometimes we might just want to visualize the correlations between two variables. We can do this by adding one more line of code to our normal scatterplot! 
++ **geom_smooth()** allows us to adjust the scatterplot 
++ **method = lm** means we want to fit a linear model to the data points! 
+```{r}
+ggplot(sample, aes(x = est_total, y = MLQP)) +
+  geom_point() +
+  geom_smooth(method = "lm") + 
+  labs(title = "What is the relationship between Presence of Meaning in Life and Selfesteem?",  
+       x = "Self-esteem", y = "Presence of Meaning in Life") +   
+  theme_classic() 
+ 
+ggsave("scatterplot_2.png", width = 8, height = 4) 
+```
+ 
+##Independent Samples t-test (AKA a two sample t-test) 
+ 
+Now let's say we want to compare means for two groups of people- people who are in the control condition, and people who were assigned in the self-mortality salience condition. We want to see if people report significantly higher meaning in life as they are remined of their own mortality. We have 50 people in the control and 50 people in the self-mortality condition. To compare group means difference, we use this code to leave out the condition when people are primed to think of the death of their loved ones: 
++ **sample1 <- sample %>%   filter(cond != "loved ones")** 
++ **t.test(data = sample1, MLQP ~ cond, var.equal = TRUE) **
+
+<u>Understanding the codes</u>
++ Since t-test is used to compare 2 groups, **filter()** allows us to remove 1 condition
++ **!=** means **"not equal to"**
++ the **t.test()** function executes the test. We specify **pair = FALSE** because it is an independent samples t-test
++ **data = name of your dataset!**
++ On the left of the **"~"** is our variable of interest - Presence of Meaning in Life On the right of the "~" is the variable that contains the group assignment - condition 
+```{r}
+sample1 <- sample %>%   
+  filter(cond != "loved ones") 
+ 
+t.test(data = sample1, MLQP ~ cond, pair = FALSE) 
+```
+
+##Dependent sample t-test 
+Let's think of an experiment in which we measure the Presence of Meaning in Life (MLQP) for people before exposing them to questions that prime them to think of their own mortality, then we measure MLQP again. In total, we only have 50 people, but we have 100 observations collected in 2 time points. We'll conduct a dependent t-test using this code:
++ **t.test(data = sample1, MLQP ~ cond, paired = TRUE)**
++ the t.test function execute the test. We specify **paired = TRUE** because it is a dependent samples t-test 
+ 
+```{r}
+sample1 <- sample %>%
+  filter(cond != "loved ones")
+
+t.test(data = sample1, MLQP ~ cond, pair = TRUE)
+```
+
+##Simple Linear Regression
+A simple linear regression (SLR) model can tell us a lot about the relationship between two variables. Consider that we want to model the relationship between *Self-esteem* and *Presence of Meaning in Life*. We would expect that the two variables be *positively* related (people with higher self-esteem are likely to report higher meaning in life). 
+A SLR can tell us *how* they are related (i.e., there is a positive linear relationship, a negative linear relationship, etc.) 
+
+1. First, let's install the package "olsrr" 
++ **install.packages("olsrr")**
++ **library(olsrr)** 
+2. Run a linear regression 
++ **mod1 <- lm(MLQP ~ est_total, data = data)**
++ **ols_regress(mod1)** 
+
+<u> Understanding the codes </u>
++ **data = name of your dataset**. In this case, we use the dataset named "data" that we create above! 
++ **lm()** allows us to conduct a linear regression: **lm(y ~ x1 + x2 + x3 + ., data = name of your dataset)** 
++ On the left of **"~"** is the **y-variable - the outcome/dependent variable**
++ On the right of **"~"** is the **x-variable - the predictor/independent variable**. You can include as many x-variables as you want!  
+ 
+```{r, message = FALSE}
+#install.packages("olsrr")
+library(olsrr)
+
+mod1 <- lm(MLQP ~ est_total, data = data)
+
+ols_regress(mod1)
+```
+
+##ANOVAs
+###Data wrangling
+Since R recognizes the cond column as a character string, there are some data wrangling we need to do before doing the analysis 
+**sample <- sample %>%**   
+**mutate(self = ifelse(cond == "self", 1, 0),**
+**control = ifelse(cond == "control", 1, 0),** 
+**cond.f = factor(cond, levels = c("control", "self", "loved ones")))**
+
+<u>Understanding the codes </u>
++ **"mutate()"** allows us to create new variables: self, control, and cond.f
++ **self** and **control** are two dummy coded variables demonstrating the group assignment: *people in the control group will have self = 0 and control = 1 while people in the self-mortality-salience group will have self = 1 and control = 0 AND people in the loved-ones-mortality-salience group will have self = 0 & control = 0* 
++ **ifelse()** is a logistic function that takes 1 argument. For example: *R will run a logistic test on the "cond" column: If cond equals "self is TRUE, the variable "self" (our new variable) will be assigned with a 1, otherwise "self" will be 0.*
++ **cond.f** is the factored version of the condition variable 
+```{r}
+sample <- sample %>%   mutate(self = ifelse(cond == "self", 1, 0), 
+                              control = ifelse(cond == "control", 1, 0),    
+                              cond.f = factor(cond, levels = c("control", "self", "loved ones"))) 
+```
+
+###Visualization
+Visualizing the data helps us to identify group differences:  
+*Box plot: MLQP by group and color by group* 
+
+<u>Understanding the codes</u>
++ **ggplot()** is the function that makes our plot
++ **sample** is the **name of our dataset**
++ **x** is our group assignment - **cond.f** (remember to use the factor)
++ **y** is the variable of interest - **Presence of Meaning in Life**
++ **labs()** allows us to rename the axes
++ **theme_classic()** gets rid of the unnecessary grid lines 
+```{r}
+#Boxplot
+ggplot(sample, aes(x = cond.f, y = MLQP, group = cond.f, color = cond.f)) +
+  geom_boxplot(show.legend = FALSE) +
+  labs("Does Presence of Meaning in Life differ across conditions?",
+       x = "Experimental conditions", y = "Presence of Meaning in Life") +
+  theme_classic()
+```
+
+###Run ANOVAs
+1. Compute the analysis of variance: 
++ **mod2 <- aov(MLQP ~ cond.f, data = sample)**
+2. Summary of the analysis:
++ **summary(mod2)**
++ **TurkeyHSD(mod2)**
+```{r}
+#Analysis of variance
+mod2 <- aov(MLQP ~ cond.f, data = sample)
+
+summary(mod2)
+
+TukeyHSD(mod2)
+```
+
